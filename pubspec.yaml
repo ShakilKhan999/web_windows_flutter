@@ -39,10 +39,14 @@ dependencies:
   window_manager: ^0.4.2
   path_provider: ^2.1.4
   flutter_screenutil: ^5.9.3
+  webview_flutter: ^4.0.0
+  webview_flutter_wkwebview: ^3.0.0
+
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
