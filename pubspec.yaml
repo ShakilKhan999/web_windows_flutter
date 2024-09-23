@@ -43,6 +43,7 @@ dependencies:
   webview_flutter_wkwebview: ^3.0.0
   glassmorphism: ^3.0.0
   gif:
+  audioplayers:
 
 dev_dependencies:
   flutter_test:

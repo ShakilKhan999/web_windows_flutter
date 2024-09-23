@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:web_windows/edite_view.dart';
 import 'package:web_windows/live_editor.dart';
+import 'package:web_windows/text_to_music.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 import 'assets_view.dart';
@@ -42,6 +43,7 @@ class _ExampleBrowser extends State<ExampleBrowser> {
   bool _showAssets = false;
   bool _showEditPage = false;
   bool _showLiveEditPage = false;
+  bool _showMusicPage = true;
 
   @override
   void initState() {
@@ -61,6 +63,11 @@ class _ExampleBrowser extends State<ExampleBrowser> {
       {
         return LiveEditor();
       }
+
+    else if(_showMusicPage)
+    {
+      return MusicGenerateScreen();
+    }
     else {
       return WebViewWidget(controller: _controller);
     }
@@ -128,6 +135,19 @@ class _ExampleBrowser extends State<ExampleBrowser> {
                   _showAssets = false;
                   _showEditPage = false;
                   _showLiveEditPage=true;
+                });
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.edit),
+              title: Text('Text To Music'),
+              onTap: () {
+                setState(() {
+                  _showAssets = false;
+                  _showEditPage = false;
+                  _showLiveEditPage=false;
+                  _showMusicPage=true;
                 });
                 Navigator.pop(context);
               },
