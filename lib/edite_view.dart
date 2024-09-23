@@ -1,28 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:gif/gif.dart';
 
 class Asset {
   final String name;
   final String category;
   final String imagePath;
   final double price;
+  final bool isGif;
 
   Asset({
     required this.name,
     required this.category,
     required this.imagePath,
     required this.price,
+    this.isGif = false,
   });
 }
 
 class FolderNode {
   String name;
   List<FolderNode> children;
+  List<Asset> assets;
   bool isExpanded;
   IconData icon;
 
   FolderNode({
     required this.name,
     this.children = const [],
+    this.assets = const [],
     this.isExpanded = false,
     this.icon = Icons.folder,
   });
@@ -33,7 +38,7 @@ class EditPage extends StatefulWidget {
   _EditPageState createState() => _EditPageState();
 }
 
-class _EditPageState extends State<EditPage> {
+class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
   final List<Asset> assets = [
     // 3D Models
     Asset(
@@ -100,26 +105,24 @@ class _EditPageState extends State<EditPage> {
         category: 'Sound effects',
         imagePath: 'assets/images/6.png',
         price: 4.99),
+
+    // GIF assets
+    Asset(
+        name: 'gif.gif',
+        category: 'GIF',
+        imagePath: 'assets/gif/gif.gif',
+        price: 1.99,
+        isGif: true),
+    Asset(
+        name: 'gif2.gif',
+        category: 'GIF',
+        imagePath: 'assets/gif/gif.gif',
+        price: 2.99,
+        isGif: true),
   ];
 
-  List<FolderNode> folderStructure = [
-    FolderNode(name: 'Project', children: [
-      FolderNode(name: '3D Models', children: [
-        FolderNode(name: 'Characters'),
-        FolderNode(name: 'Vehicles'),
-        FolderNode(name: 'Props'),
-      ]),
-      FolderNode(name: 'Materials', children: [
-        FolderNode(name: 'Metals'),
-        FolderNode(name: 'Fabrics'),
-      ]),
-      FolderNode(name: 'Sound Effects', children: [
-        FolderNode(name: 'Ambience'),
-        FolderNode(name: 'Actions'),
-      ]),
-      FolderNode(name: 'Scripts'),
-    ]),
-  ];
+  late List<FolderNode> folderStructure;
+  late Map<String, GifController> _gifControllers;
 
   String? selectedCategory;
   String? droppedImagePath;
@@ -128,6 +131,49 @@ class _EditPageState extends State<EditPage> {
   void initState() {
     super.initState();
     selectedCategory = assets.first.category;
+    _initializeFolderStructure();
+    _initializeGifControllers();
+  }
+
+  void _initializeFolderStructure() {
+    folderStructure = [
+      FolderNode(name: 'Project', children: [
+        FolderNode(name: '3D Models', children: [
+          FolderNode(name: 'Characters'),
+          FolderNode(name: 'Vehicles'),
+          FolderNode(name: 'Props'),
+        ]),
+        FolderNode(name: 'Materials', children: [
+          FolderNode(name: 'Metals'),
+          FolderNode(name: 'Fabrics'),
+        ]),
+        FolderNode(name: 'Sound Effects', children: [
+          FolderNode(name: 'Ambience'),
+          FolderNode(name: 'Actions'),
+        ]),
+        FolderNode(name: 'Assets', children: [
+          FolderNode(
+            name: 'GIF',
+            assets: assets.where((asset) => asset.isGif).toList(),
+          ),
+        ]),
+      ]),
+    ];
+  }
+
+  void _initializeGifControllers() {
+    _gifControllers = {};
+    for (var asset in assets.where((a) => a.isGif)) {
+      _gifControllers[asset.imagePath] = GifController(vsync: this);
+    }
+  }
+
+  @override
+  void dispose() {
+    for (var controller in _gifControllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
   }
 
   Widget _buildFolderTree(FolderNode node, [int depth = 0]) {
@@ -148,7 +194,7 @@ class _EditPageState extends State<EditPage> {
               children: [
                 Row(
                   children: [
-                    Icon(node.children.isEmpty
+                    Icon(node.children.isEmpty && node.assets.isEmpty
                         ? Icons.insert_drive_file
                         : node.isExpanded
                             ? Icons.folder_open
@@ -157,7 +203,7 @@ class _EditPageState extends State<EditPage> {
                     Text(node.name),
                   ],
                 ),
-                if (node.children.isNotEmpty)
+                if (node.children.isNotEmpty || node.assets.isNotEmpty)
                   Icon(node.isExpanded
                       ? Icons.arrow_drop_up
                       : Icons.arrow_drop_down)
@@ -165,31 +211,41 @@ class _EditPageState extends State<EditPage> {
             ),
           ),
         ),
-        if (node.isExpanded)
+        if (node.isExpanded) ...[
           ...node.children.map((child) => _buildFolderTree(child, depth + 1)),
+          ...node.assets.map((asset) => _buildGifAsset(asset, depth + 1)),
+        ],
       ],
     );
   }
 
-  Widget _buildDraggableAsset(Asset asset) {
+  Widget _buildGifAsset(Asset asset, int depth) {
+    return Padding(
+      padding: EdgeInsets.only(left: depth * 20.0, top: 4, bottom: 4),
+      child: _buildDraggableAsset(asset, isInFolderTree: true),
+    );
+  }
+
+  Widget _buildDraggableAsset(Asset asset, {bool isInFolderTree = false}) {
     return Draggable<String>(
       data: asset.imagePath,
-      child: _buildAssetThumbnail(asset),
+      child: _buildAssetThumbnail(asset, isInFolderTree: isInFolderTree),
       feedback: _buildDragFeedback(asset),
-      childWhenDragging: _buildAssetThumbnail(asset, opacity: 0.5),
+      childWhenDragging: _buildAssetThumbnail(
+        asset,
+        opacity: 0.5,
+        isInFolderTree: isInFolderTree,
+      ),
     );
   }
 
   Widget _buildDragFeedback(Asset asset) {
     return Container(
       width: 100,
-      height: 100,
+      height: 70,
       decoration: BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage(asset.imagePath),
-          fit: BoxFit.cover,
-        ),
         borderRadius: BorderRadius.circular(10),
+        color: Colors.white,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.5),
@@ -199,40 +255,76 @@ class _EditPageState extends State<EditPage> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildAssetThumbnail(Asset asset, {double opacity = 1.0}) {
-    return Opacity(
-      opacity: opacity,
-      child: Container(
-        width: 100,
-        height: 120,
-        margin: EdgeInsets.symmetric(horizontal: 4),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              height: 70,
-              width: 100,
-              child: Image.asset(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: asset.isGif
+            ? Gif(
+                image: AssetImage(asset.imagePath),
+                controller: _gifControllers[asset.imagePath]!,
+                fps: 10,
+                autostart: Autostart.loop,
+                placeholder: (context) => CircularProgressIndicator(),
+                onFetchCompleted: () {
+                  _gifControllers[asset.imagePath]!.reset();
+                  _gifControllers[asset.imagePath]!.forward();
+                },
+              )
+            : Image.asset(
                 asset.imagePath,
                 fit: BoxFit.cover,
               ),
-            ),
-            SizedBox(height: 4),
-            Text(
-              asset.name,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 12),
-            ),
-            Text(
-              '\$${asset.price.toStringAsFixed(2)}',
-              style: TextStyle(fontSize: 12),
-            ),
-          ],
-        ),
       ),
+    );
+  }
+
+  Widget _buildAssetThumbnail(Asset asset,
+      {double opacity = 1.0, bool isInFolderTree = false}) {
+    return Opacity(
+      opacity: opacity,
+      child: asset.isGif && isInFolderTree
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  asset.name,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 12),
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+              ],
+            )
+          : Container(
+              width: 100,
+              height: 120,
+              // color: Colors.red,
+              margin: EdgeInsets.symmetric(horizontal: 4),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    height: 70,
+                    width: 100,
+                    child: asset.isGif && isInFolderTree
+                        ? null
+                        : Image.asset(
+                            asset.imagePath,
+                            fit: BoxFit.cover,
+                          ),
+                  ),
+                  Text(
+                    asset.name,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  Text(
+                    '\$${asset.price.toStringAsFixed(2)}',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
     );
   }
 
@@ -248,6 +340,34 @@ class _EditPageState extends State<EditPage> {
         ),
       ),
     );
+  }
+
+  Widget _buildDroppedAsset(String imagePath) {
+    Asset asset = assets.firstWhere(
+      (a) => a.imagePath == imagePath,
+      orElse: () => Asset(
+        name: 'Unknown',
+        category: 'Unknown',
+        imagePath: imagePath,
+        price: 0.0,
+      ),
+    );
+
+    if (asset.isGif) {
+      return Gif(
+        image: AssetImage(asset.imagePath),
+        controller: _gifControllers[asset.imagePath]!,
+        fps: 10,
+        autostart: Autostart.loop,
+        placeholder: (context) => CircularProgressIndicator(),
+        onFetchCompleted: () {
+          _gifControllers[asset.imagePath]?.reset();
+          _gifControllers[asset.imagePath]?.forward();
+        },
+      );
+    } else {
+      return Image.asset(imagePath, fit: BoxFit.contain);
+    }
   }
 
   @override
@@ -287,7 +407,7 @@ class _EditPageState extends State<EditPage> {
                               margin: EdgeInsets.all(8),
                               child: Center(
                                 child: droppedImagePath != null
-                                    ? Image.asset(droppedImagePath!)
+                                    ? _buildDroppedAsset(droppedImagePath!)
                                     : Text('Drag an image here'),
                               ),
                             );
@@ -335,7 +455,7 @@ class _EditPageState extends State<EditPage> {
                         margin: EdgeInsets.all(8),
                         child: Center(
                           child: droppedImagePath != null
-                              ? Image.asset(droppedImagePath!)
+                              ? _buildDroppedAsset(droppedImagePath!)
                               : Text('Drag an image here'),
                         ),
                       );
