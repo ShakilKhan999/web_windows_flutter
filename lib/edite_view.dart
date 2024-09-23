@@ -105,8 +105,6 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
         category: 'Sound effects',
         imagePath: 'assets/images/6.png',
         price: 4.99),
-
-    // GIF assets
     Asset(
         name: 'gif.gif',
         category: 'GIF',
@@ -199,7 +197,7 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
                         : node.isExpanded
                             ? Icons.folder_open
                             : Icons.folder),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     Text(node.name),
                   ],
                 ),
@@ -251,7 +249,7 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
             color: Colors.black.withOpacity(0.5),
             spreadRadius: 2,
             blurRadius: 5,
-            offset: Offset(0, 3),
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -263,7 +261,7 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
                 controller: _gifControllers[asset.imagePath]!,
                 fps: 10,
                 autostart: Autostart.loop,
-                placeholder: (context) => CircularProgressIndicator(),
+                placeholder: (context) => const CircularProgressIndicator(),
                 onFetchCompleted: () {
                   _gifControllers[asset.imagePath]!.reset();
                   _gifControllers[asset.imagePath]!.forward();
@@ -288,18 +286,15 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
                 Text(
                   asset.name,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 12),
+                  style: const TextStyle(fontSize: 12),
                 ),
-                SizedBox(
-                  height: 5,
-                ),
+                const SizedBox(height: 5),
               ],
             )
           : Container(
               width: 100,
               height: 120,
-              // color: Colors.red,
-              margin: EdgeInsets.symmetric(horizontal: 4),
+              margin: const EdgeInsets.symmetric(horizontal: 4),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -316,11 +311,11 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
                   Text(
                     asset.name,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 12),
+                    style: const TextStyle(fontSize: 12),
                   ),
                   Text(
                     '\$${asset.price.toStringAsFixed(2)}',
-                    style: TextStyle(fontSize: 12),
+                    style: const TextStyle(fontSize: 12),
                   ),
                 ],
               ),
@@ -332,7 +327,7 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
     return Container(
       height: 130,
       child: Card(
-        margin: EdgeInsets.all(8),
+        margin: const EdgeInsets.all(8),
         child: ListView.builder(
           scrollDirection: Axis.horizontal,
           itemCount: assets.length,
@@ -354,61 +349,332 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
     );
 
     if (asset.isGif) {
-      return Gif(
-        image: AssetImage(asset.imagePath),
-        controller: _gifControllers[asset.imagePath]!,
-        fps: 10,
-        autostart: Autostart.loop,
-        placeholder: (context) => CircularProgressIndicator(),
-        onFetchCompleted: () {
-          _gifControllers[asset.imagePath]?.reset();
-          _gifControllers[asset.imagePath]?.forward();
-        },
-      );
+      if (_gifControllers.containsKey(asset.imagePath)) {
+        return Gif(
+          image: AssetImage(asset.imagePath),
+          controller: _gifControllers[asset.imagePath]!,
+          fps: 10,
+          autostart: Autostart.loop,
+          placeholder: (context) => const CircularProgressIndicator(),
+          onFetchCompleted: () {
+            _gifControllers[asset.imagePath]?.reset();
+            _gifControllers[asset.imagePath]?.forward();
+          },
+        );
+      } else {
+        return Text('GIF controller not found for ${asset.name}');
+      }
     } else {
       return Image.asset(imagePath, fit: BoxFit.contain);
     }
   }
 
+  Widget _buildTabBar(List<String> tabs) {
+    return Container(
+      height: 45,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: tabs.length,
+        itemBuilder: (context, index) {
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: const BoxDecoration(
+              border: Border(
+                bottom: BorderSide(color: Colors.grey),
+              ),
+            ),
+            child: Text(tabs[index], style: const TextStyle(fontSize: 12)),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildInspectorPanel() {
+    return ListView(
+      children: [
+        ExpansionTile(
+          title: const Text('Transform'),
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 15.0),
+              child: Row(
+                children: [
+                  const Text('Position:'),
+                  const SizedBox(
+                    width: 3,
+                  ),
+                  Row(
+                    children: [
+                      const Text('x'),
+                      const SizedBox(
+                        width: 3,
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                          color: const Color.fromARGB(255, 83, 83, 83),
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsets.all(4.0),
+                          child: Text('10.762'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(
+                    width: 3,
+                  ),
+                  Row(
+                    children: [
+                      const Text('y'),
+                      const SizedBox(
+                        width: 3,
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                          color: const Color.fromARGB(255, 83, 83, 83),
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsets.all(4.0),
+                          child: Text('333.436'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(
+                    width: 3,
+                  ),
+                  Row(
+                    children: [
+                      const Text('z'),
+                      const SizedBox(
+                        width: 3,
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                          color: const Color.fromARGB(255, 83, 83, 83),
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsets.all(4.0),
+                          child: Text('31.591'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 15.0, top: 5),
+              child: Row(
+                children: [
+                  const Text('Position:'),
+                  const SizedBox(
+                    width: 3,
+                  ),
+                  Row(
+                    children: [
+                      const Text('x'),
+                      const SizedBox(
+                        width: 3,
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                          color: const Color.fromARGB(255, 83, 83, 83),
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsets.all(4.0),
+                          child: Text('0'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(
+                    width: 3,
+                  ),
+                  Row(
+                    children: [
+                      const Text('y'),
+                      const SizedBox(
+                        width: 3,
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                          color: const Color.fromARGB(255, 83, 83, 83),
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsets.all(4.0),
+                          child: Text('90'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(
+                    width: 3,
+                  ),
+                  Row(
+                    children: [
+                      const Text('z'),
+                      const SizedBox(
+                        width: 3,
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                          color: const Color.fromARGB(255, 83, 83, 83),
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsets.all(4.0),
+                          child: Text('0'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 15.0, top: 5),
+              child: Row(
+                children: [
+                  const Text('Position:'),
+                  const SizedBox(
+                    width: 3,
+                  ),
+                  Row(
+                    children: [
+                      const Text('x'),
+                      const SizedBox(
+                        width: 3,
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                          color: const Color.fromARGB(255, 83, 83, 83),
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsets.all(4.0),
+                          child: Text('1'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(
+                    width: 3,
+                  ),
+                  Row(
+                    children: [
+                      const Text('y'),
+                      const SizedBox(
+                        width: 3,
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                          color: const Color.fromARGB(255, 83, 83, 83),
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsets.all(4.0),
+                          child: Text('1'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(
+                    width: 3,
+                  ),
+                  Row(
+                    children: [
+                      const Text('z'),
+                      const SizedBox(
+                        width: 3,
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                          color: const Color.fromARGB(255, 83, 83, 83),
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsets.all(4.0),
+                          child: Text('1'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const ExpansionTile(
+          title: Text('Animator'),
+          children: [
+            ListTile(title: Text('Controller: None')),
+            ListTile(title: Text('Avatar: None')),
+            ListTile(title: Text('Apply Root Motion')),
+            ListTile(title: Text('Update Mode: Normal')),
+          ],
+        ),
+        const ExpansionTile(
+          title: Text('Capsule Collider'),
+          children: [
+            ListTile(title: Text('Is Trigger: false')),
+            ListTile(title: Text('Material: None (Physic Material)')),
+            ListTile(title: Text('Center: X 0 Y 0.9 Z 0')),
+            ListTile(title: Text('Radius: 0.3')),
+            ListTile(title: Text('Height: 1.8')),
+            ListTile(title: Text('Direction: Y-Axis')),
+          ],
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          if (constraints.maxWidth > 600) {
-            // Wide layout
-            return Row(
+      body: folderStructure.isEmpty
+          ? const Center(child: CircularProgressIndicator())
+          : Row(
               children: [
-                // Left side: Folder Tree
+                // Left panel (Hierarchy)
                 Container(
                   width: 250,
-                  height: MediaQuery.of(context).size.height,
-                  child: Card(
-                    margin: EdgeInsets.all(8),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: folderStructure
-                            .map((node) => _buildFolderTree(node))
-                            .toList(),
+                  child: Column(
+                    children: [
+                      _buildTabBar(['Hierarchy', 'Project', 'Console']),
+                      Expanded(
+                        child: Card(
+                          margin: const EdgeInsets.all(8),
+                          child: ListView(
+                            children: folderStructure
+                                .map((node) => _buildFolderTree(node))
+                                .toList(),
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
-                // Right side: UI Area and Asset Lists
+                // Center panel (Scene view)
                 Expanded(
                   child: Column(
                     children: [
-                      // UI Area
+                      _buildTabBar(['Scene', 'Game']),
                       Expanded(
                         child: DragTarget<String>(
                           builder: (context, candidateData, rejectedData) {
                             return Card(
-                              margin: EdgeInsets.all(8),
+                              margin: const EdgeInsets.all(8),
                               child: Center(
                                 child: droppedImagePath != null
                                     ? _buildDroppedAsset(droppedImagePath!)
-                                    : Text('Drag an image here'),
+                                    : const Text('Scene View'),
                               ),
                             );
                           },
@@ -419,63 +685,31 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
                           },
                         ),
                       ),
-                      // Asset Lists
                       _buildAssetList(),
-                      SizedBox(height: 10),
+                      SizedBox(
+                        height: 10,
+                      ),
                       _buildAssetList(),
                     ],
                   ),
                 ),
-              ],
-            );
-          } else {
-            // Narrow layout
-            return Column(
-              children: [
-                // Top: Folder Tree
+                // Right panel (Inspector)
                 Container(
-                  height: 200,
-                  child: Card(
-                    margin: EdgeInsets.all(8),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: folderStructure
-                            .map((node) => _buildFolderTree(node))
-                            .toList(),
-                      ),
-                    ),
-                  ),
-                ),
-                // Middle: UI Area
-                Expanded(
-                  child: DragTarget<String>(
-                    builder: (context, candidateData, rejectedData) {
-                      return Card(
-                        margin: EdgeInsets.all(8),
-                        child: Center(
-                          child: droppedImagePath != null
-                              ? _buildDroppedAsset(droppedImagePath!)
-                              : Text('Drag an image here'),
+                  width: 300,
+                  child: Column(
+                    children: [
+                      _buildTabBar(['Inspector', 'Services']),
+                      Expanded(
+                        child: Card(
+                          margin: const EdgeInsets.all(8),
+                          child: _buildInspectorPanel(),
                         ),
-                      );
-                    },
-                    onAccept: (imagePath) {
-                      setState(() {
-                        droppedImagePath = imagePath;
-                      });
-                    },
+                      ),
+                    ],
                   ),
                 ),
-                // Bottom: Asset Lists
-                _buildAssetList(),
-                SizedBox(height: 10),
-                _buildAssetList(),
               ],
-            );
-          }
-        },
-      ),
+            ),
     );
   }
 }
