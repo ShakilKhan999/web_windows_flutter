@@ -43,8 +43,8 @@ class _LiveEditorState extends State<LiveEditor> {
             child: Padding(
               padding: const EdgeInsets.all(18.0),
               child: GlassmorphicContainer(
-                width: MediaQuery.of(context).size.width * 0.4,
-                height: MediaQuery.of(context).size.height * 0.6,
+                width: MediaQuery.of(context).size.width * 0.3,
+                height: MediaQuery.of(context).size.height * 0.5,
                 borderRadius: 20,
                 blur: 20,
                 alignment: Alignment.bottomCenter,
