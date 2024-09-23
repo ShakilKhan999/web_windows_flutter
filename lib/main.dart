@@ -43,7 +43,7 @@ class _ExampleBrowser extends State<ExampleBrowser> {
   bool _showAssets = false;
   bool _showEditPage = false;
   bool _showLiveEditPage = false;
-  bool _showMusicPage = true;
+  bool _showMusicPage = false;
 
   @override
   void initState() {
@@ -100,6 +100,8 @@ class _ExampleBrowser extends State<ExampleBrowser> {
                 setState(() {
                   _showAssets = false;
                   _showEditPage = false;
+                  _showMusicPage=false;
+                  _showLiveEditPage=false;
                 });
                 _controller.loadRequest(Uri.parse('https://text-to-3d--new1-7ebce.us-central1.hosted.app/'));
                 Navigator.pop(context);
