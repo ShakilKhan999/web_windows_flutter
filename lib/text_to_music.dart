@@ -13,6 +13,8 @@ class _MusicGenerateScreenState extends State<MusicGenerateScreen> {
   bool isPlaying = false;
   Duration currentPosition = Duration.zero;
   Duration totalDuration = Duration.zero;
+  bool isGenerating = false;
+  bool showMusicPlayer = false;
 
   final String onlineAudioUrl = 'https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3';
 
@@ -32,6 +34,20 @@ class _MusicGenerateScreenState extends State<MusicGenerateScreen> {
     });
 
     _audioPlayer.setSourceUrl(onlineAudioUrl);
+  }
+
+  void _generateMusic() async {
+    setState(() {
+      isGenerating = true;
+    });
+
+    // Simulate loading for 2 seconds
+    await Future.delayed(Duration(seconds: 2));
+
+    setState(() {
+      isGenerating = false;
+      showMusicPlayer = true;
+    });
   }
 
   void _playPauseMusic() async {
@@ -91,9 +107,7 @@ class _MusicGenerateScreenState extends State<MusicGenerateScreen> {
                     prefixIcon: Icon(Icons.music_note, color: Colors.white60),
                     suffixIcon: IconButton(
                       icon: Icon(Icons.send, color: Colors.white),
-                      onPressed: () {
-                        print('Generate music from text: ${_searchController.text}');
-                      },
+                      onPressed: _generateMusic,
                     ),
                   ),
                 ),
@@ -124,125 +138,11 @@ class _MusicGenerateScreenState extends State<MusicGenerateScreen> {
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(20.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            width: 70,
-                            height: 70,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: LinearGradient(
-                                colors: [Colors.purpleAccent, Colors.deepPurple],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.purpleAccent.withOpacity(0.5),
-                                  blurRadius: 20,
-                                  spreadRadius: 5,
-                                ),
-                              ],
-                            ),
-                            child: Center(
-                              child: Icon(
-                                Icons.music_note,
-                                size: 40,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 20),
-                          Text(
-                            'AI Generated Music',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(height: 15),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              IconButton(
-                                icon: Icon(
-                                  Icons.skip_previous,
-                                  size: 25,
-                                  color: Colors.white,
-                                ),
-                                onPressed: () {},
-                              ),
-                              SizedBox(width: 15),
-                              GestureDetector(
-                                onTap: _playPauseMusic,
-                                child: Container(
-                                  width: 50,
-                                  height: 50,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.white,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.white.withOpacity(0.5),
-                                        blurRadius: 20,
-                                        spreadRadius: 5,
-                                      ),
-                                    ],
-                                  ),
-                                  child: Icon(
-                                    isPlaying ? Icons.pause : Icons.play_arrow,
-                                    size: 25,
-                                    color: Colors.deepPurple[900],
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: 20),
-                              IconButton(
-                                icon: Icon(
-                                  Icons.skip_next,
-                                  size: 40,
-                                  color: Colors.white,
-                                ),
-                                onPressed: () {},
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 20),
-                          SliderTheme(
-                            data: SliderTheme.of(context).copyWith(
-                              activeTrackColor: Colors.white,
-                              inactiveTrackColor: Colors.white.withOpacity(0.3),
-                              thumbColor: Colors.white,
-                              overlayColor: Colors.white.withOpacity(0.3),
-                              thumbShape: RoundSliderThumbShape(enabledThumbRadius: 6),
-                              overlayShape: RoundSliderOverlayShape(overlayRadius: 20),
-                            ),
-                            child: Slider(
-                              value: currentPosition.inSeconds.toDouble(),
-                              max: totalDuration.inSeconds.toDouble(),
-                              onChanged: _seekMusic,
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  _formatDuration(currentPosition),
-                                  style: TextStyle(color: Colors.white70),
-                                ),
-                                Text(
-                                  _formatDuration(totalDuration),
-                                  style: TextStyle(color: Colors.white70),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
+                      child: isGenerating
+                          ? _buildLoadingUI()
+                          : showMusicPlayer
+                          ? _buildMusicPlayerUI()
+                          : _buildInitialUI(),
                     ),
                   ),
                 ),
@@ -251,6 +151,184 @@ class _MusicGenerateScreenState extends State<MusicGenerateScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildInitialUI() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.music_note,
+          size: 80,
+          color: Colors.white,
+        ),
+        SizedBox(height: 20),
+        Text(
+          'Generate your own music by AI',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        SizedBox(height: 20),
+        ElevatedButton(
+          onPressed: _generateMusic,
+          child: Text('Generate Music'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor:  Colors.purpleAccent,
+            padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLoadingUI() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+        ),
+        SizedBox(height: 20),
+        Text(
+          'Generating your music...',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+          ),
+        ),
+        SizedBox(height: 20),
+        LinearProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.purpleAccent),
+          backgroundColor: Colors.white.withOpacity(0.3),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMusicPlayerUI() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          width: 70,
+          height: 70,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              colors: [Colors.purpleAccent, Colors.deepPurple],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.purpleAccent.withOpacity(0.5),
+                blurRadius: 20,
+                spreadRadius: 5,
+              ),
+            ],
+          ),
+          child: Center(
+            child: Icon(
+              Icons.music_note,
+              size: 40,
+              color: Colors.white,
+            ),
+          ),
+        ),
+        SizedBox(height: 20),
+        Text(
+          'AI Generated Music',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        SizedBox(height: 15),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            IconButton(
+              icon: Icon(
+                Icons.skip_previous,
+                size: 25,
+                color: Colors.white,
+              ),
+              onPressed: () {},
+            ),
+            SizedBox(width: 15),
+            GestureDetector(
+              onTap: _playPauseMusic,
+              child: Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.white.withOpacity(0.5),
+                      blurRadius: 20,
+                      spreadRadius: 5,
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  isPlaying ? Icons.pause : Icons.play_arrow,
+                  size: 25,
+                  color: Colors.deepPurple[900],
+                ),
+              ),
+            ),
+            SizedBox(width: 20),
+            IconButton(
+              icon: Icon(
+                Icons.skip_next,
+                size: 40,
+                color: Colors.white,
+              ),
+              onPressed: () {},
+            ),
+          ],
+        ),
+        SizedBox(height: 20),
+        SliderTheme(
+          data: SliderTheme.of(context).copyWith(
+            activeTrackColor: Colors.white,
+            inactiveTrackColor: Colors.white.withOpacity(0.3),
+            thumbColor: Colors.white,
+            overlayColor: Colors.white.withOpacity(0.3),
+            thumbShape: RoundSliderThumbShape(enabledThumbRadius: 6),
+            overlayShape: RoundSliderOverlayShape(overlayRadius: 20),
+          ),
+          child: Slider(
+            value: currentPosition.inSeconds.toDouble(),
+            max: totalDuration.inSeconds.toDouble(),
+            onChanged: _seekMusic,
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                _formatDuration(currentPosition),
+                style: TextStyle(color: Colors.white70),
+              ),
+              Text(
+                _formatDuration(totalDuration),
+                style: TextStyle(color: Colors.white70),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
