@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         navigatorKey: navigatorKey,
         theme: ThemeData.dark(),
-        home: ExampleBrowser(),
+        home: SplashScreen(),
       ),
     );
   }
@@ -182,6 +182,45 @@ class _ExampleBrowser extends State<ExampleBrowser> {
         ),
       ),
       body: compositeView(),
+    );
+  }
+}
+
+
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
+  @override
+  // ignore: library_private_types_in_public_api
+  _SplashScreenState createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    loadSplash();
+  }
+
+  Future<void> loadSplash() async{
+ await Future.delayed(Duration(seconds: 3));
+ Navigator.push(
+   context,
+   MaterialPageRoute(builder: (context) =>  ExampleBrowser()),
+ );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Center(
+        child: Image.asset(
+          'assets/images/khelbe.jpg',
+          width: 150,
+          height: 150,
+        ),
+      ),
     );
   }
 }
