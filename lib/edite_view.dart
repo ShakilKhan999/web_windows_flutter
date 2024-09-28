@@ -40,71 +40,6 @@ class EditPage extends StatefulWidget {
 
 class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
   final List<Asset> assets = [
-    // 3D Models
-    Asset(
-        name: 'Character',
-        category: '3D models',
-        imagePath: 'assets/images/1.png',
-        price: 2.99),
-    Asset(
-        name: 'Car',
-        category: '3D models',
-        imagePath: 'assets/images/2.png',
-        price: 3.99),
-    Asset(
-        name: 'PC',
-        category: '3D models',
-        imagePath: 'assets/images/3.png',
-        price: 4.99),
-    Asset(
-        name: 'GUN',
-        category: '3D models',
-        imagePath: 'assets/images/4.png',
-        price: 5.99),
-
-    // Materials
-    Asset(
-        name: 'Rusty metal',
-        category: 'Materials',
-        imagePath: 'assets/images/5.png',
-        price: 1.99),
-    Asset(
-        name: 'Skin',
-        category: 'Materials',
-        imagePath: 'assets/images/6.png',
-        price: 2.99),
-    Asset(
-        name: 'Space suit fabric',
-        category: 'Materials',
-        imagePath: 'assets/images/1.png',
-        price: 3.99),
-    Asset(
-        name: 'Carbon fiber',
-        category: 'Materials',
-        imagePath: 'assets/images/2.png',
-        price: 4.99),
-
-    // Sound effects
-    Asset(
-        name: 'Explosion',
-        category: 'Sound effects',
-        imagePath: 'assets/images/3.png',
-        price: 1.99),
-    Asset(
-        name: 'Laser beam',
-        category: 'Sound effects',
-        imagePath: 'assets/images/4.png',
-        price: 2.99),
-    Asset(
-        name: 'Alien chatter',
-        category: 'Sound effects',
-        imagePath: 'assets/images/5.png',
-        price: 3.99),
-    Asset(
-        name: 'Rocket launch',
-        category: 'Sound effects',
-        imagePath: 'assets/images/6.png',
-        price: 4.99),
     Asset(
         name: 'gif.gif',
         category: 'GIF',
@@ -117,10 +52,35 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
         imagePath: 'assets/gif/gif.gif',
         price: 2.99,
         isGif: true),
+    Asset(
+        name: 'gif2.gif',
+        category: 'GIF',
+        imagePath: 'assets/gif/1.gif',
+        price: 2.99,
+        isGif: true),
+    Asset(
+        name: 'gif2.gif',
+        category: 'GIF',
+        imagePath: 'assets/gif/2.gif',
+        price: 2.99,
+        isGif: true),
+    Asset(
+        name: 'gif2.gif',
+        category: 'GIF',
+        imagePath: 'assets/gif/3.gif',
+        price: 2.99,
+        isGif: true),
+    Asset(
+        name: 'gif2.gif',
+        category: 'GIF',
+        imagePath: 'assets/gif/4.gif',
+        price: 2.99,
+        isGif: true),
   ];
 
   late List<FolderNode> folderStructure;
   late Map<String, GifController> _gifControllers;
+  late Map<String, GifController> bottomgifControllers;
 
   String? selectedCategory;
   String? droppedImagePath;
@@ -131,6 +91,7 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
     selectedCategory = assets.first.category;
     _initializeFolderStructure();
     _initializeGifControllers();
+    _initializebottomGifControllers();
   }
 
   void _initializeFolderStructure() {
@@ -149,12 +110,7 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
           FolderNode(name: 'Ambience'),
           FolderNode(name: 'Actions'),
         ]),
-        FolderNode(name: 'Assets', children: [
-          FolderNode(
-            name: 'GIF',
-            assets: assets.where((asset) => asset.isGif).toList(),
-          ),
-        ]),
+        FolderNode(name: 'Assets', children: []),
       ]),
     ];
   }
@@ -166,9 +122,19 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
     }
   }
 
+  void _initializebottomGifControllers() {
+    bottomgifControllers = {};
+    for (var asset in assets.where((a) => a.isGif)) {
+      bottomgifControllers[asset.imagePath] = GifController(vsync: this);
+    }
+  }
+
   @override
   void dispose() {
     for (var controller in _gifControllers.values) {
+      controller.dispose();
+    }
+    for (var controller in bottomgifControllers.values) {
       controller.dispose();
     }
     super.dispose();
@@ -224,16 +190,19 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildDraggableAsset(Asset asset, {bool isInFolderTree = false}) {
+  Widget _buildDraggableAsset(Asset asset,
+      {bool isInFolderTree = false, bool isInAssetList = false}) {
     return Draggable<String>(
       data: asset.imagePath,
-      child: _buildAssetThumbnail(asset, isInFolderTree: isInFolderTree),
       feedback: _buildDragFeedback(asset),
       childWhenDragging: _buildAssetThumbnail(
         asset,
         opacity: 0.5,
         isInFolderTree: isInFolderTree,
+        isInAssetList: isInAssetList,
       ),
+      child: _buildAssetThumbnail(asset,
+          isInFolderTree: isInFolderTree, isInAssetList: isInAssetList),
     );
   }
 
@@ -243,7 +212,7 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
       height: 70,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
-        color: Colors.white,
+        // color: Colors.red,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.5),
@@ -269,6 +238,7 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
               )
             : Image.asset(
                 asset.imagePath,
+                gaplessPlayback: true,
                 fit: BoxFit.cover,
               ),
       ),
@@ -276,7 +246,9 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
   }
 
   Widget _buildAssetThumbnail(Asset asset,
-      {double opacity = 1.0, bool isInFolderTree = false}) {
+      {double opacity = 1.0,
+      bool isInFolderTree = false,
+      bool isInAssetList = false}) {
     return Opacity(
       opacity: opacity,
       child: asset.isGif && isInFolderTree
@@ -294,6 +266,7 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
           : Container(
               width: 100,
               height: 120,
+              // color: Colors.red,
               margin: const EdgeInsets.symmetric(horizontal: 4),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -301,8 +274,19 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
                   Container(
                     height: 70,
                     width: 100,
-                    child: asset.isGif && isInFolderTree
-                        ? null
+                    child: asset.isGif
+                        ? Gif(
+                            image: AssetImage(asset.imagePath),
+                            controller: bottomgifControllers[asset.imagePath]!,
+                            fps: 10,
+                            autostart: Autostart.no,
+                            placeholder: (context) =>
+                                const CircularProgressIndicator(),
+                            onFetchCompleted: () {
+                              bottomgifControllers[asset.imagePath]?.reset();
+                              // _gifControllers[asset.imagePath]?.forward();
+                            },
+                          )
                         : Image.asset(
                             asset.imagePath,
                             fit: BoxFit.cover,
@@ -331,7 +315,8 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
         child: ListView.builder(
           scrollDirection: Axis.horizontal,
           itemCount: assets.length,
-          itemBuilder: (context, index) => _buildDraggableAsset(assets[index]),
+          itemBuilder: (context, index) =>
+              _buildDraggableAsset(assets[index], isInAssetList: true),
         ),
       ),
     );
@@ -349,17 +334,22 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
     );
 
     if (asset.isGif) {
-      if (_gifControllers.containsKey(asset.imagePath)) {
-        return Gif(
-          image: AssetImage(asset.imagePath),
-          controller: _gifControllers[asset.imagePath]!,
-          fps: 10,
-          autostart: Autostart.loop,
-          placeholder: (context) => const CircularProgressIndicator(),
-          onFetchCompleted: () {
-            _gifControllers[asset.imagePath]?.reset();
-            _gifControllers[asset.imagePath]?.forward();
-          },
+      if (bottomgifControllers.containsKey(asset.imagePath)) {
+        return Container(
+          // color: Colors.amber,
+          padding: EdgeInsets.all(20),
+          child: Gif(
+            image: AssetImage(asset.imagePath),
+            controller: bottomgifControllers[asset.imagePath]!,
+            fps: 10,
+            autostart: Autostart.loop,
+            placeholder: (context) =>
+                Center(child: const CircularProgressIndicator()),
+            onFetchCompleted: () {
+              _gifControllers[asset.imagePath]?.reset();
+              _gifControllers[asset.imagePath]?.forward();
+            },
+          ),
         );
       } else {
         return Text('GIF controller not found for ${asset.name}');
@@ -681,6 +671,11 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
                           onAccept: (imagePath) {
                             setState(() {
                               droppedImagePath = imagePath;
+                              // if (_gifControllers[imagePath] != null) {
+                              //   _gifControllers[imagePath]!.reset();
+                              //   // _gifControllers[imagePath]!
+                              //   //     .forward(); // Start the GIF animation
+                              // }
                             });
                           },
                         ),
