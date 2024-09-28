@@ -160,7 +160,7 @@ class _ExampleBrowser extends State<ExampleBrowser> {
                 color: Colors.grey[850],
               ),
               child: Text(
-                'Text to 3D Converter',
+                'Khelbe AI',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 24,

@@ -40,6 +40,9 @@ dependencies:
   path_provider: ^2.1.4
   flutter_screenutil: ^5.9.3
   gif:
+  webview_flutter: ^4.0.0
+  webview_flutter_wkwebview: ^3.0.0
+  glassmorphism: ^3.0.0
 
 dev_dependencies:
   flutter_test:
