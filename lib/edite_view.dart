@@ -53,25 +53,25 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
         price: 2.99,
         isGif: true),
     Asset(
-        name: 'gif2.gif',
+        name: 'gif3.gif',
         category: 'GIF',
         imagePath: 'assets/gif/1.gif',
         price: 2.99,
         isGif: true),
     Asset(
-        name: 'gif2.gif',
+        name: 'gif4.gif',
         category: 'GIF',
         imagePath: 'assets/gif/2.gif',
         price: 2.99,
         isGif: true),
     Asset(
-        name: 'gif2.gif',
+        name: 'gif5.gif',
         category: 'GIF',
         imagePath: 'assets/gif/3.gif',
         price: 2.99,
         isGif: true),
     Asset(
-        name: 'gif2.gif',
+        name: 'gif6.gif',
         category: 'GIF',
         imagePath: 'assets/gif/4.gif',
         price: 2.99,
@@ -79,8 +79,8 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
   ];
 
   late List<FolderNode> folderStructure;
-  late Map<String, GifController> _gifControllers;
-  late Map<String, GifController> bottomgifControllers;
+  late Map<String, GifController> _staticGifControllers;
+  late Map<String, GifController> _animatedGifControllers;
 
   String? selectedCategory;
   String? droppedImagePath;
@@ -91,7 +91,6 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
     selectedCategory = assets.first.category;
     _initializeFolderStructure();
     _initializeGifControllers();
-    _initializebottomGifControllers();
   }
 
   void _initializeFolderStructure() {
@@ -116,25 +115,20 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
   }
 
   void _initializeGifControllers() {
-    _gifControllers = {};
+    _staticGifControllers = {};
+    _animatedGifControllers = {};
     for (var asset in assets.where((a) => a.isGif)) {
-      _gifControllers[asset.imagePath] = GifController(vsync: this);
-    }
-  }
-
-  void _initializebottomGifControllers() {
-    bottomgifControllers = {};
-    for (var asset in assets.where((a) => a.isGif)) {
-      bottomgifControllers[asset.imagePath] = GifController(vsync: this);
+      _staticGifControllers[asset.imagePath] = GifController(vsync: this);
+      _animatedGifControllers[asset.imagePath] = GifController(vsync: this);
     }
   }
 
   @override
   void dispose() {
-    for (var controller in _gifControllers.values) {
+    for (var controller in _staticGifControllers.values) {
       controller.dispose();
     }
-    for (var controller in bottomgifControllers.values) {
+    for (var controller in _animatedGifControllers.values) {
       controller.dispose();
     }
     super.dispose();
@@ -212,7 +206,6 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
       height: 70,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
-        // color: Colors.red,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.5),
@@ -227,13 +220,12 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
         child: asset.isGif
             ? Gif(
                 image: AssetImage(asset.imagePath),
-                controller: _gifControllers[asset.imagePath]!,
+                controller: _staticGifControllers[asset.imagePath]!,
                 fps: 10,
-                autostart: Autostart.loop,
+                autostart: Autostart.once,
                 placeholder: (context) => const CircularProgressIndicator(),
                 onFetchCompleted: () {
-                  _gifControllers[asset.imagePath]!.reset();
-                  _gifControllers[asset.imagePath]!.forward();
+                  _staticGifControllers[asset.imagePath]!.reset();
                 },
               )
             : Image.asset(
@@ -266,7 +258,6 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
           : Container(
               width: 100,
               height: 120,
-              // color: Colors.red,
               margin: const EdgeInsets.symmetric(horizontal: 4),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -277,14 +268,13 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
                     child: asset.isGif
                         ? Gif(
                             image: AssetImage(asset.imagePath),
-                            controller: bottomgifControllers[asset.imagePath]!,
+                            controller: _staticGifControllers[asset.imagePath]!,
                             fps: 10,
-                            autostart: Autostart.no,
+                            autostart: Autostart.once,
                             placeholder: (context) =>
                                 const CircularProgressIndicator(),
                             onFetchCompleted: () {
-                              bottomgifControllers[asset.imagePath]?.reset();
-                              // _gifControllers[asset.imagePath]?.forward();
+                              _staticGifControllers[asset.imagePath]?.reset();
                             },
                           )
                         : Image.asset(
@@ -334,20 +324,19 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
     );
 
     if (asset.isGif) {
-      if (bottomgifControllers.containsKey(asset.imagePath)) {
+      if (_animatedGifControllers.containsKey(asset.imagePath)) {
         return Container(
-          // color: Colors.amber,
           padding: EdgeInsets.all(20),
           child: Gif(
             image: AssetImage(asset.imagePath),
-            controller: bottomgifControllers[asset.imagePath]!,
+            controller: _animatedGifControllers[asset.imagePath]!,
             fps: 10,
             autostart: Autostart.loop,
             placeholder: (context) =>
                 Center(child: const CircularProgressIndicator()),
             onFetchCompleted: () {
-              _gifControllers[asset.imagePath]?.reset();
-              _gifControllers[asset.imagePath]?.forward();
+              _animatedGifControllers[asset.imagePath]?.reset();
+              _animatedGifControllers[asset.imagePath]?.forward();
             },
           ),
         );
@@ -391,15 +380,11 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
               child: Row(
                 children: [
                   const Text('Position:'),
-                  const SizedBox(
-                    width: 3,
-                  ),
+                  const SizedBox(width: 3),
                   Row(
                     children: [
                       const Text('x'),
-                      const SizedBox(
-                        width: 3,
-                      ),
+                      const SizedBox(width: 3),
                       Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(6),
@@ -412,15 +397,11 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
                       ),
                     ],
                   ),
-                  const SizedBox(
-                    width: 3,
-                  ),
+                  const SizedBox(width: 3),
                   Row(
                     children: [
                       const Text('y'),
-                      const SizedBox(
-                        width: 3,
-                      ),
+                      const SizedBox(width: 3),
                       Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(6),
@@ -433,15 +414,11 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
                       ),
                     ],
                   ),
-                  const SizedBox(
-                    width: 3,
-                  ),
+                  const SizedBox(width: 3),
                   Row(
                     children: [
                       const Text('z'),
-                      const SizedBox(
-                        width: 3,
-                      ),
+                      const SizedBox(width: 3),
                       Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(6),
@@ -457,148 +434,7 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
                 ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.only(left: 15.0, top: 5),
-              child: Row(
-                children: [
-                  const Text('Position:'),
-                  const SizedBox(
-                    width: 3,
-                  ),
-                  Row(
-                    children: [
-                      const Text('x'),
-                      const SizedBox(
-                        width: 3,
-                      ),
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(6),
-                          color: const Color.fromARGB(255, 83, 83, 83),
-                        ),
-                        child: const Padding(
-                          padding: EdgeInsets.all(4.0),
-                          child: Text('0'),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(
-                    width: 3,
-                  ),
-                  Row(
-                    children: [
-                      const Text('y'),
-                      const SizedBox(
-                        width: 3,
-                      ),
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(6),
-                          color: const Color.fromARGB(255, 83, 83, 83),
-                        ),
-                        child: const Padding(
-                          padding: EdgeInsets.all(4.0),
-                          child: Text('90'),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(
-                    width: 3,
-                  ),
-                  Row(
-                    children: [
-                      const Text('z'),
-                      const SizedBox(
-                        width: 3,
-                      ),
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(6),
-                          color: const Color.fromARGB(255, 83, 83, 83),
-                        ),
-                        child: const Padding(
-                          padding: EdgeInsets.all(4.0),
-                          child: Text('0'),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 15.0, top: 5),
-              child: Row(
-                children: [
-                  const Text('Position:'),
-                  const SizedBox(
-                    width: 3,
-                  ),
-                  Row(
-                    children: [
-                      const Text('x'),
-                      const SizedBox(
-                        width: 3,
-                      ),
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(6),
-                          color: const Color.fromARGB(255, 83, 83, 83),
-                        ),
-                        child: const Padding(
-                          padding: EdgeInsets.all(4.0),
-                          child: Text('1'),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(
-                    width: 3,
-                  ),
-                  Row(
-                    children: [
-                      const Text('y'),
-                      const SizedBox(
-                        width: 3,
-                      ),
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(6),
-                          color: const Color.fromARGB(255, 83, 83, 83),
-                        ),
-                        child: const Padding(
-                          padding: EdgeInsets.all(4.0),
-                          child: Text('1'),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(
-                    width: 3,
-                  ),
-                  Row(
-                    children: [
-                      const Text('z'),
-                      const SizedBox(
-                        width: 3,
-                      ),
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(6),
-                          color: const Color.fromARGB(255, 83, 83, 83),
-                        ),
-                        child: const Padding(
-                          padding: EdgeInsets.all(4.0),
-                          child: Text('1'),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+            // Add more Transform details here...
           ],
         ),
         const ExpansionTile(
@@ -671,19 +507,16 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
                           onAccept: (imagePath) {
                             setState(() {
                               droppedImagePath = imagePath;
-                              // if (_gifControllers[imagePath] != null) {
-                              //   _gifControllers[imagePath]!.reset();
-                              //   // _gifControllers[imagePath]!
-                              //   //     .forward(); // Start the GIF animation
-                              // }
+                              if (_animatedGifControllers[imagePath] != null) {
+                                _animatedGifControllers[imagePath]!.reset();
+                                _animatedGifControllers[imagePath]!.forward();
+                              }
                             });
                           },
                         ),
                       ),
                       _buildAssetList(),
-                      SizedBox(
-                        height: 10,
-                      ),
+                      SizedBox(height: 10),
                       _buildAssetList(),
                     ],
                   ),
