@@ -45,6 +45,7 @@ dependencies:
   gif:
   audioplayers:
   get: ^4.6.6
+  hotkey_manager: ^0.1.7
 dev_dependencies:
   flutter_test:
     sdk: flutter

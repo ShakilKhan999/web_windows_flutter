@@ -165,7 +165,7 @@ class _MusicGenerateScreenState extends State<MusicGenerateScreen> {
         ),
         SizedBox(height: 20),
         Text(
-          'Generate your own music by AI',
+          'Generate your own music with AI',
           style: TextStyle(
             color: Colors.white,
             fontSize: 24,

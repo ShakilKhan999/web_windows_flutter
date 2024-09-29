@@ -4,6 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   audioplayers_windows
+  hotkey_manager
   screen_retriever
   webview_windows
   window_manager
