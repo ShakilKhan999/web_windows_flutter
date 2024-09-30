@@ -216,7 +216,7 @@ class _MusicGenerateScreenState extends State<MusicGenerateScreen> {
       children: [
         Container(
           width: 70,
-          height: 70,
+          height: 65,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             gradient: LinearGradient(

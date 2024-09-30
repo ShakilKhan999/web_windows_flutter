@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:glassmorphism/glassmorphism.dart';
+import 'dart:math';
+import 'dart:async';
 
 class LiveEditor extends StatefulWidget {
   const LiveEditor({super.key});
@@ -9,24 +11,92 @@ class LiveEditor extends StatefulWidget {
 }
 
 class _LiveEditorState extends State<LiveEditor> {
-  List<String> chatMessages = [
-    "What can I help you with?",
+  List<Map<String, dynamic>> chatMessages = [
+    {"text": "What can I help you with?", "isUser": false},
   ];
 
-  final TextEditingController _controller = TextEditingController();
-  bool _isBackgroundLoaded = false;
+  List<String> gifList = [
+    "assets/gif/doomgif.gif",
+    "assets/gif/doom2.gif",
+    "assets/gif/doom3.gif"
+  ];
 
-  // Method to add new message to the chat list and trigger background load
+  List<String> aiReplies = [
+    "Interesting point. Could you elaborate?",
+    "I see. How does that relate to your previous statement?",
+    "That's a unique perspective. What led you to that conclusion?",
+    "I understand. What are your thoughts on the implications?",
+    "Fascinating. Have you considered alternative viewpoints?",
+  ];
+
+  int currentGifIndex = 0;
+  bool started=false;
+  final TextEditingController _controller = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  final Random _random = Random();
+  bool _isBackgroundLoaded = false;
+  bool _isChangingBackground = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadInitialBackground();
+  }
+
+  void _loadInitialBackground() {
+    Future.delayed(Duration(seconds: 2), () {
+      setState(() {
+        _isBackgroundLoaded = true;
+      });
+    });
+  }
+
   void _sendMessage() {
     if (_controller.text.isNotEmpty) {
       setState(() {
-        chatMessages.add(_controller.text);
+        started=true;
+        // Add user message
+        chatMessages.add({"text": _controller.text, "isUser": true});
         _controller.clear();
-        if (!_isBackgroundLoaded) {
-          _isBackgroundLoaded = true;
-        }
+
+        // Start changing background
+        _isChangingBackground = true;
+      });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToBottom();
+      });
+
+      // Simulate loading for 2 seconds
+      Future.delayed(Duration(seconds: 2), () {
+        setState(() {
+          // Change background GIF
+          int newGifIndex;
+          do {
+            newGifIndex = _random.nextInt(gifList.length);
+          } while (newGifIndex == currentGifIndex && gifList.length > 1);
+          currentGifIndex = newGifIndex;
+
+          // Add AI reply
+          String aiResponse = aiReplies[_random.nextInt(aiReplies.length)];
+          chatMessages.add({"text": aiResponse, "isUser": false});
+
+          _isChangingBackground = false;
+        });
+
+        // Scroll to bottom after setState
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _scrollToBottom();
+        });
       });
     }
+  }
+
+  void _scrollToBottom() {
+    _scrollController.animateTo(
+      _scrollController.position.maxScrollExtent,
+      duration: Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
   }
 
   @override
@@ -34,9 +104,9 @@ class _LiveEditorState extends State<LiveEditor> {
     return Scaffold(
         body: Stack(
           children: [
-            if (_isBackgroundLoaded)
+            if (_isBackgroundLoaded && started==true)
               Image.asset(
-                "assets/gif/doomgif.gif",
+                gifList[currentGifIndex],
                 height: MediaQuery.of(context).size.height,
                 width: MediaQuery.of(context).size.width,
                 fit: BoxFit.cover,
@@ -44,6 +114,13 @@ class _LiveEditorState extends State<LiveEditor> {
             else
               Center(
                 child: CircularProgressIndicator(),
+              ),
+            if (_isChangingBackground)
+              Container(
+                color: Colors.black.withOpacity(0.5),
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
               ),
             Align(
               alignment: Alignment.bottomRight,
@@ -78,24 +155,25 @@ class _LiveEditorState extends State<LiveEditor> {
                       // Chat list
                       Expanded(
                         child: ListView.builder(
+                          controller: _scrollController,
                           itemCount: chatMessages.length,
                           itemBuilder: (context, index) {
                             return Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Align(
-                                alignment: index % 2 == 0
-                                    ? Alignment.centerLeft
-                                    : Alignment.centerRight,
+                                alignment: chatMessages[index]["isUser"]
+                                    ? Alignment.centerRight
+                                    : Alignment.centerLeft,
                                 child: Container(
                                   padding: EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: index % 2 == 0
-                                        ? Colors.blueAccent.withOpacity(0.7)
-                                        : Colors.greenAccent.withOpacity(0.7),
+                                    color: chatMessages[index]["isUser"]
+                                        ? Colors.greenAccent.withOpacity(0.7)
+                                        : Colors.blueAccent.withOpacity(0.7),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Text(
-                                    chatMessages[index],
+                                    chatMessages[index]["text"],
                                     style: TextStyle(
                                       color: Colors.white,
                                     ),
