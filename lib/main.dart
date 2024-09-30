@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:webview_windows/webview_windows.dart';
 import 'package:window_manager/window_manager.dart';
 import 'assets_view.dart'; // Import the new AssetsView
+import 'package:gif/gif.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 

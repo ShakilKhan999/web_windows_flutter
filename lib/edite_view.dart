@@ -5,14 +5,13 @@ class Asset {
   final String name;
   final String category;
   final String imagePath;
-  final double price;
+
   final bool isGif;
 
   Asset({
     required this.name,
     required this.category,
     required this.imagePath,
-    required this.price,
     this.isGif = false,
   });
 }
@@ -41,57 +40,36 @@ class EditPage extends StatefulWidget {
 class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
   final List<Asset> assets = [
     Asset(
-        name: 'gif.gif',
+        name: 'gif2.gif',
         category: 'GIF',
-        imagePath: 'assets/gif/gif.gif',
-        price: 1.99,
+        imagePath: 'assets/gif/1.gif',
         isGif: true),
     Asset(
         name: 'gif2.gif',
         category: 'GIF',
-        imagePath: 'assets/gif/gif.gif',
-        price: 2.99,
-        isGif: true),
-    Asset(
-        name: 'gif3.gif',
-        category: 'GIF',
-        imagePath: 'assets/gif/1.gif',
-        price: 2.99,
-        isGif: true),
-    Asset(
-        name: 'gif4.gif',
-        category: 'GIF',
         imagePath: 'assets/gif/2.gif',
-        price: 2.99,
         isGif: true),
     Asset(
-        name: 'gif5.gif',
+        name: 'gif2.gif',
         category: 'GIF',
         imagePath: 'assets/gif/3.gif',
-        price: 2.99,
         isGif: true),
     Asset(
-        name: 'gif6.gif',
+        name: 'gif2.gif',
         category: 'GIF',
         imagePath: 'assets/gif/4.gif',
-        price: 2.99,
         isGif: true),
   ];
 
   late List<FolderNode> folderStructure;
-  late Map<String, GifController> _staticGifControllers;
-  late Map<String, GifController> _animatedGifControllers;
+  late Map<String, GifController> _gifControllers;
+  late Map<String, GifController> bottomGifControllers;
+  // GifController? _droppedAssetController;
+  GifController? _droppedAssetController;
 
   String? selectedCategory;
   String? droppedImagePath;
-
-  @override
-  void initState() {
-    super.initState();
-    selectedCategory = assets.first.category;
-    _initializeFolderStructure();
-    _initializeGifControllers();
-  }
+  String? _droppedAssetPath;
 
   void _initializeFolderStructure() {
     folderStructure = [
@@ -114,24 +92,52 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
     ];
   }
 
+  @override
+  void initState() {
+    super.initState();
+    selectedCategory = assets.first.category;
+    _initializeFolderStructure();
+    _initializeGifControllers();
+  }
+
   void _initializeGifControllers() {
-    _staticGifControllers = {};
-    _animatedGifControllers = {};
+    _gifControllers = {};
+    bottomGifControllers = {};
     for (var asset in assets.where((a) => a.isGif)) {
-      _staticGifControllers[asset.imagePath] = GifController(vsync: this);
-      _animatedGifControllers[asset.imagePath] = GifController(vsync: this);
+      _gifControllers[asset.imagePath] = GifController(vsync: this);
+      bottomGifControllers[asset.imagePath] = GifController(vsync: this);
     }
   }
 
   @override
   void dispose() {
-    for (var controller in _staticGifControllers.values) {
+    for (var controller in _gifControllers.values) {
       controller.dispose();
     }
-    for (var controller in _animatedGifControllers.values) {
+    for (var controller in bottomGifControllers.values) {
       controller.dispose();
     }
+    _droppedAssetController?.dispose();
     super.dispose();
+  }
+
+  Widget _buildGifWidget(String imagePath,
+      {bool autostart = false, bool isBottomList = false}) {
+    return Gif(
+      image: AssetImage(imagePath),
+      controller: _getGifController(imagePath, isBottomList: isBottomList),
+      fps: 10,
+      autostart: autostart ? Autostart.loop : Autostart.no,
+      placeholder: (context) => const CircularProgressIndicator(),
+      onFetchCompleted: () {
+        final controller =
+            _getGifController(imagePath, isBottomList: isBottomList);
+        controller.reset();
+        if (autostart) {
+          controller.forward();
+        }
+      },
+    );
   }
 
   Widget _buildFolderTree(FolderNode node, [int depth = 0]) {
@@ -220,12 +226,13 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
         child: asset.isGif
             ? Gif(
                 image: AssetImage(asset.imagePath),
-                controller: _staticGifControllers[asset.imagePath]!,
+                controller: _gifControllers[asset.imagePath]!,
                 fps: 10,
-                autostart: Autostart.once,
+                autostart: Autostart.loop,
                 placeholder: (context) => const CircularProgressIndicator(),
                 onFetchCompleted: () {
-                  _staticGifControllers[asset.imagePath]!.reset();
+                  _gifControllers[asset.imagePath]!.reset();
+                  _gifControllers[asset.imagePath]!.forward();
                 },
               )
             : Image.asset(
@@ -266,17 +273,8 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
                     height: 70,
                     width: 100,
                     child: asset.isGif
-                        ? Gif(
-                            image: AssetImage(asset.imagePath),
-                            controller: _staticGifControllers[asset.imagePath]!,
-                            fps: 10,
-                            autostart: Autostart.once,
-                            placeholder: (context) =>
-                                const CircularProgressIndicator(),
-                            onFetchCompleted: () {
-                              _staticGifControllers[asset.imagePath]?.reset();
-                            },
-                          )
+                        ? _buildGifWidget(asset.imagePath,
+                            isBottomList: isInAssetList)
                         : Image.asset(
                             asset.imagePath,
                             fit: BoxFit.cover,
@@ -285,10 +283,6 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
                   Text(
                     asset.name,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 12),
-                  ),
-                  Text(
-                    '\$${asset.price.toStringAsFixed(2)}',
                     style: const TextStyle(fontSize: 12),
                   ),
                 ],
@@ -312,6 +306,15 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
     );
   }
 
+  GifController _getGifController(String imagePath,
+      {bool isBottomList = false}) {
+    final controllerMap = isBottomList ? bottomGifControllers : _gifControllers;
+    if (!controllerMap.containsKey(imagePath)) {
+      controllerMap[imagePath] = GifController(vsync: this);
+    }
+    return controllerMap[imagePath]!;
+  }
+
   Widget _buildDroppedAsset(String imagePath) {
     Asset asset = assets.firstWhere(
       (a) => a.imagePath == imagePath,
@@ -319,33 +322,23 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
         name: 'Unknown',
         category: 'Unknown',
         imagePath: imagePath,
-        price: 0.0,
       ),
     );
 
-    if (asset.isGif) {
-      if (_animatedGifControllers.containsKey(asset.imagePath)) {
-        return Container(
-          padding: EdgeInsets.all(20),
-          child: Gif(
-            image: AssetImage(asset.imagePath),
-            controller: _animatedGifControllers[asset.imagePath]!,
-            fps: 10,
-            autostart: Autostart.loop,
-            placeholder: (context) =>
-                Center(child: const CircularProgressIndicator()),
-            onFetchCompleted: () {
-              _animatedGifControllers[asset.imagePath]?.reset();
-              _animatedGifControllers[asset.imagePath]?.forward();
-            },
-          ),
-        );
-      } else {
-        return Text('GIF controller not found for ${asset.name}');
-      }
-    } else {
-      return Image.asset(imagePath, fit: BoxFit.contain);
-    }
+    return Container(
+      padding: EdgeInsets.all(20),
+      child: Gif(
+        image: AssetImage(asset.imagePath),
+        controller: _droppedAssetController,
+        fps: 10,
+        autostart: Autostart.loop,
+        placeholder: (context) => const CircularProgressIndicator(),
+        onFetchCompleted: () {
+          _droppedAssetController?.reset();
+          _droppedAssetController?.forward();
+        },
+      ),
+    );
   }
 
   Widget _buildTabBar(List<String> tabs) {
@@ -380,11 +373,15 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
               child: Row(
                 children: [
                   const Text('Position:'),
-                  const SizedBox(width: 3),
+                  const SizedBox(
+                    width: 3,
+                  ),
                   Row(
                     children: [
                       const Text('x'),
-                      const SizedBox(width: 3),
+                      const SizedBox(
+                        width: 3,
+                      ),
                       Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(6),
@@ -397,11 +394,15 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
                       ),
                     ],
                   ),
-                  const SizedBox(width: 3),
+                  const SizedBox(
+                    width: 3,
+                  ),
                   Row(
                     children: [
                       const Text('y'),
-                      const SizedBox(width: 3),
+                      const SizedBox(
+                        width: 3,
+                      ),
                       Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(6),
@@ -414,11 +415,15 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
                       ),
                     ],
                   ),
-                  const SizedBox(width: 3),
+                  const SizedBox(
+                    width: 3,
+                  ),
                   Row(
                     children: [
                       const Text('z'),
-                      const SizedBox(width: 3),
+                      const SizedBox(
+                        width: 3,
+                      ),
                       Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(6),
@@ -434,7 +439,148 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
                 ],
               ),
             ),
-            // Add more Transform details here...
+            Padding(
+              padding: const EdgeInsets.only(left: 15.0, top: 5),
+              child: Row(
+                children: [
+                  const Text('Position:'),
+                  const SizedBox(
+                    width: 3,
+                  ),
+                  Row(
+                    children: [
+                      const Text('x'),
+                      const SizedBox(
+                        width: 3,
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                          color: const Color.fromARGB(255, 83, 83, 83),
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsets.all(4.0),
+                          child: Text('0'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(
+                    width: 3,
+                  ),
+                  Row(
+                    children: [
+                      const Text('y'),
+                      const SizedBox(
+                        width: 3,
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                          color: const Color.fromARGB(255, 83, 83, 83),
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsets.all(4.0),
+                          child: Text('90'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(
+                    width: 3,
+                  ),
+                  Row(
+                    children: [
+                      const Text('z'),
+                      const SizedBox(
+                        width: 3,
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                          color: const Color.fromARGB(255, 83, 83, 83),
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsets.all(4.0),
+                          child: Text('0'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 15.0, top: 5),
+              child: Row(
+                children: [
+                  const Text('Position:'),
+                  const SizedBox(
+                    width: 3,
+                  ),
+                  Row(
+                    children: [
+                      const Text('x'),
+                      const SizedBox(
+                        width: 3,
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                          color: const Color.fromARGB(255, 83, 83, 83),
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsets.all(4.0),
+                          child: Text('1'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(
+                    width: 3,
+                  ),
+                  Row(
+                    children: [
+                      const Text('y'),
+                      const SizedBox(
+                        width: 3,
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                          color: const Color.fromARGB(255, 83, 83, 83),
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsets.all(4.0),
+                          child: Text('1'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(
+                    width: 3,
+                  ),
+                  Row(
+                    children: [
+                      const Text('z'),
+                      const SizedBox(
+                        width: 3,
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                          color: const Color.fromARGB(255, 83, 83, 83),
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsets.all(4.0),
+                          child: Text('1'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
         const ExpansionTile(
@@ -507,10 +653,6 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
                           onAccept: (imagePath) {
                             setState(() {
                               droppedImagePath = imagePath;
-                              if (_animatedGifControllers[imagePath] != null) {
-                                _animatedGifControllers[imagePath]!.reset();
-                                _animatedGifControllers[imagePath]!.forward();
-                              }
                             });
                           },
                         ),
@@ -520,8 +662,7 @@ class _EditPageState extends State<EditPage> with TickerProviderStateMixin {
                       _buildAssetList(),
                     ],
                   ),
-                ),
-                // Right panel (Inspector)
+                ), // Right panel (Inspector)
                 Container(
                   width: 300,
                   child: Column(
