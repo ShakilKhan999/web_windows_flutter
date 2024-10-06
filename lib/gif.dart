@@ -32,7 +32,6 @@ class _GifDragDropScreenState extends State<GifDragDropScreen>
       ),
       body: Column(
         children: [
-          // Center area to show selected GIF
           Expanded(
             child: Center(
               child: _selectedGif != null

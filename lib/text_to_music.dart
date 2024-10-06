@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:glassmorphism/glassmorphism.dart';
+import 'package:http/http.dart' as http;
 
 class MusicGenerateScreen extends StatefulWidget {
   @override
@@ -15,8 +17,8 @@ class _MusicGenerateScreenState extends State<MusicGenerateScreen> {
   Duration totalDuration = Duration.zero;
   bool isGenerating = false;
   bool showMusicPlayer = false;
-
-  final String onlineAudioUrl = 'https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3';
+  String? audioUrl;
+  int durationInSeconds = 15; // Initially set to 15 seconds
 
   @override
   void initState() {
@@ -33,21 +35,59 @@ class _MusicGenerateScreenState extends State<MusicGenerateScreen> {
       });
     });
 
-    _audioPlayer.setSourceUrl(onlineAudioUrl);
+    // Add listener to text controller to update UI when text changes
+    _searchController.addListener(() {
+      setState(() {}); // This will rebuild the UI when text changes
+    });
   }
 
-  void _generateMusic() async {
+  Future<void> generateMusic() async {
+    if (_searchController.text.isEmpty) return; // Prevent generation if text is empty
+
     setState(() {
       isGenerating = true;
+      showMusicPlayer = false;
     });
 
-    // Simulate loading for 2 seconds
-    await Future.delayed(Duration(seconds: 2));
-
-    setState(() {
-      isGenerating = false;
-      showMusicPlayer = true;
+    var url = Uri.parse("https://api.musicfy.lol/v1/generate-music");
+    var headers = {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer cm1pfpuwz0001l80ct64ar3xe"
+    };
+    var body = jsonEncode({
+      "prompt": _searchController.text,
+      "duration": durationInSeconds
     });
+
+    try {
+      var response = await http.post(url, headers: headers, body: body);
+
+      if (response.statusCode == 200) {
+        var jsonResponse = jsonDecode(response.body);
+        audioUrl = jsonResponse[0]['file_url'];
+        await _audioPlayer.setSourceUrl(audioUrl!);
+        setState(() {
+          isGenerating = false;
+          showMusicPlayer = true;
+        });
+      } else {
+        print("Failed: ${response.statusCode}, ${response.body}");
+        setState(() {
+          isGenerating = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to generate music. Please try again.')),
+        );
+      }
+    } catch (e) {
+      print("Error: $e");
+      setState(() {
+        isGenerating = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred. Please try again.')),
+      );
+    }
   }
 
   void _playPauseMusic() async {
@@ -91,27 +131,75 @@ class _MusicGenerateScreenState extends State<MusicGenerateScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 20),
-                TextField(
-                  controller: _searchController,
-                  style: TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    hintText: 'Type text to generate music...',
-                    hintStyle: TextStyle(color: Colors.white60),
-                    filled: true,
-                    fillColor: Colors.white.withOpacity(0.1),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30),
-                      borderSide: BorderSide.none,
+                SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _searchController,
+                        style: TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: 'Type text to generate music...',
+                          hintStyle: TextStyle(color: Colors.white60),
+                          filled: true,
+                          fillColor: Colors.white.withOpacity(0.1),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                            borderSide: BorderSide.none,
+                          ),
+                          prefixIcon: Icon(Icons.music_note, color: Colors.white60),
+                        ),
+                      ),
                     ),
-                    prefixIcon: Icon(Icons.music_note, color: Colors.white60),
-                    suffixIcon: IconButton(
-                      icon: Icon(Icons.send, color: Colors.white),
-                      onPressed: _generateMusic,
+                    SizedBox(width: 10),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      child: Row(
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.remove, color: Colors.white),
+                            onPressed: () {
+                              setState(() {
+                                if (durationInSeconds > 1) durationInSeconds--;
+                              });
+                            },
+                          ),
+                          Text(
+                            '$durationInSeconds s',
+                            style: TextStyle(color: Colors.white, fontSize: 16),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.add, color: Colors.white),
+                            onPressed: () {
+                              setState(() {
+                                durationInSeconds++;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 10),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: ElevatedButton(
+                    onPressed: (_searchController.text.isNotEmpty && !isGenerating)
+                        ? generateMusic
+                        : null, // Disable button if text is empty or generating
+                    child: Text('Generate'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.purpleAccent,
+                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      disabledBackgroundColor: Colors.grey, // Color when disabled
                     ),
                   ),
                 ),
-                SizedBox(height: 40),
+                SizedBox(height: 10),
                 Expanded(
                   child: GlassmorphicContainer(
                     width: double.infinity,
@@ -153,7 +241,6 @@ class _MusicGenerateScreenState extends State<MusicGenerateScreen> {
       ),
     );
   }
-
   Widget _buildInitialUI() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -174,13 +261,13 @@ class _MusicGenerateScreenState extends State<MusicGenerateScreen> {
           textAlign: TextAlign.center,
         ),
         SizedBox(height: 20),
-        ElevatedButton(
-          onPressed: _generateMusic,
-          child: Text('Generate Music'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor:  Colors.purpleAccent,
-            padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+        Text(
+          'Enter a prompt and set the duration, then click Generate.',
+          style: TextStyle(
+            color: Colors.white70,
+            fontSize: 16,
           ),
+          textAlign: TextAlign.center,
         ),
       ],
     );
@@ -240,7 +327,7 @@ class _MusicGenerateScreenState extends State<MusicGenerateScreen> {
             ),
           ),
         ),
-        SizedBox(height: 20),
+        SizedBox(height: 5),
         Text(
           'AI Generated Music',
           style: TextStyle(

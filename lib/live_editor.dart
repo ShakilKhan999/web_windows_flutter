@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:glassmorphism/glassmorphism.dart';
-import 'dart:math';
 import 'dart:async';
 
 class LiveEditor extends StatefulWidget {
@@ -22,18 +21,13 @@ class _LiveEditorState extends State<LiveEditor> {
   ];
 
   List<String> aiReplies = [
-    "Interesting point. Could you elaborate?",
-    "I see. How does that relate to your previous statement?",
-    "That's a unique perspective. What led you to that conclusion?",
-    "I understand. What are your thoughts on the implications?",
-    "Fascinating. Have you considered alternative viewpoints?",
+    "Generating..",
   ];
 
   int currentGifIndex = 0;
-  bool started=false;
+  bool started = false;
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final Random _random = Random();
   bool _isBackgroundLoaded = false;
   bool _isChangingBackground = false;
 
@@ -54,36 +48,23 @@ class _LiveEditorState extends State<LiveEditor> {
   void _sendMessage() {
     if (_controller.text.isNotEmpty) {
       setState(() {
-        started=true;
-        // Add user message
+        started = true;
         chatMessages.add({"text": _controller.text, "isUser": true});
         _controller.clear();
-
-        // Start changing background
         _isChangingBackground = true;
       });
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _scrollToBottom();
       });
 
-      // Simulate loading for 2 seconds
       Future.delayed(Duration(seconds: 2), () {
         setState(() {
-          // Change background GIF
-          int newGifIndex;
-          do {
-            newGifIndex = _random.nextInt(gifList.length);
-          } while (newGifIndex == currentGifIndex && gifList.length > 1);
-          currentGifIndex = newGifIndex;
-
-          // Add AI reply
-          String aiResponse = aiReplies[_random.nextInt(aiReplies.length)];
+          currentGifIndex = (currentGifIndex + 1) % gifList.length;
+          String aiResponse = aiReplies[0];
           chatMessages.add({"text": aiResponse, "isUser": false});
-
           _isChangingBackground = false;
         });
 
-        // Scroll to bottom after setState
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _scrollToBottom();
         });
@@ -104,7 +85,7 @@ class _LiveEditorState extends State<LiveEditor> {
     return Scaffold(
         body: Stack(
           children: [
-            if (_isBackgroundLoaded && started==true)
+            if (_isBackgroundLoaded && started == true)
               Image.asset(
                 gifList[currentGifIndex],
                 height: MediaQuery.of(context).size.height,
@@ -152,7 +133,6 @@ class _LiveEditorState extends State<LiveEditor> {
                   ),
                   child: Column(
                     children: [
-                      // Chat list
                       Expanded(
                         child: ListView.builder(
                           controller: _scrollController,
@@ -184,7 +164,6 @@ class _LiveEditorState extends State<LiveEditor> {
                           },
                         ),
                       ),
-                      // Text input field
                       Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Row(

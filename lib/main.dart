@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:web_windows/edite_view.dart';
 import 'package:web_windows/live_editor.dart';
+import 'package:web_windows/splash_screen.dart';
+import 'package:web_windows/text_to_anmation.dart';
 import 'package:web_windows/text_to_music.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
@@ -32,7 +35,7 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         navigatorKey: navigatorKey,
         theme: ThemeData.dark(),
-        home: ExampleBrowser(),
+        home: SplashScreen(),
       ),
     );
   }
@@ -45,11 +48,14 @@ class ExampleBrowser extends StatefulWidget {
 
 class _ExampleBrowser extends State<ExampleBrowser> with WindowListener {
   late final WebViewController _controller;
+  late final WebViewController _controllerViewer;
   bool _showAssets = false;
   bool _showEditPage = false;
   bool _showLiveEditPage = false;
   bool _showMusicPage = false;
   bool _showSpotlight = false;
+  bool _showTextAnimation = false;
+  bool _showViewer = false;
   Offset _spotlightPosition = Offset(20, 20);
 
   @override
@@ -59,6 +65,10 @@ class _ExampleBrowser extends State<ExampleBrowser> with WindowListener {
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..loadRequest(Uri.parse('https://text-to-3d--new1-7ebce.us-central1.hosted.app/'));
+
+    _controllerViewer = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..loadRequest(Uri.parse('https://bvh-player.web.app/BVH_player.html'));
     _initSpotlight();
   }
 
@@ -99,7 +109,15 @@ class _ExampleBrowser extends State<ExampleBrowser> with WindowListener {
       return LiveEditor();
     } else if (_showMusicPage) {
       return MusicGenerateScreen();
-    } else {
+    }
+    else if (_showTextAnimation) {
+      return AnimationGenerateScreen();
+    }
+    else if(_showViewer)
+      {
+        return WebViewWidget(controller: _controllerViewer);
+      }
+    else {
       return WebViewWidget(controller: _controller);
     }
   }
@@ -142,6 +160,9 @@ class _ExampleBrowser extends State<ExampleBrowser> with WindowListener {
                   _showEditPage = false;
                   _showMusicPage = false;
                   _showLiveEditPage = false;
+
+                  _showTextAnimation=false;
+                  _showViewer=false;
                 });
                 _controller.loadRequest(Uri.parse('https://text-to-3d--new1-7ebce.us-central1.hosted.app/'));
                 Navigator.pop(context);
@@ -156,6 +177,9 @@ class _ExampleBrowser extends State<ExampleBrowser> with WindowListener {
                   _showEditPage = false;
                   _showMusicPage = false;
                   _showLiveEditPage = false;
+
+                  _showTextAnimation=false;
+                  _showViewer=false;
                 });
                 Navigator.pop(context);
               },
@@ -169,6 +193,9 @@ class _ExampleBrowser extends State<ExampleBrowser> with WindowListener {
                   _showEditPage = true;
                   _showMusicPage = false;
                   _showLiveEditPage = false;
+
+                  _showTextAnimation=false;
+                  _showViewer=false;
                 });
                 Navigator.pop(context);
               },
@@ -182,6 +209,9 @@ class _ExampleBrowser extends State<ExampleBrowser> with WindowListener {
                   _showEditPage = false;
                   _showMusicPage = false;
                   _showLiveEditPage = true;
+
+                  _showTextAnimation=false;
+                  _showViewer=false;
                 });
                 Navigator.pop(context);
               },
@@ -195,6 +225,40 @@ class _ExampleBrowser extends State<ExampleBrowser> with WindowListener {
                   _showEditPage = false;
                   _showMusicPage = true;
                   _showLiveEditPage = false;
+                  _showTextAnimation=false;
+                  _showViewer=false;
+                });
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.animation),
+              title: Text('Text To Animation'),
+              onTap: () {
+                setState(() {
+                  _showAssets = false;
+                  _showEditPage = false;
+                  _showMusicPage = false;
+                  _showLiveEditPage = false;
+                  _showSpotlight=false;
+                  _showViewer=false;
+                  _showTextAnimation=true;
+                });
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.animation),
+              title: const Text('3D Viewer'),
+              onTap: () {
+                setState(() {
+                  _showAssets = false;
+                  _showEditPage = false;
+                  _showMusicPage = false;
+                  _showLiveEditPage = false;
+                  _showSpotlight=false;
+                  _showTextAnimation=false;
+                  _showViewer=true;
                 });
                 Navigator.pop(context);
               },

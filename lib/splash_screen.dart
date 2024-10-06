@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:web_windows/main.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -12,7 +13,15 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(Duration(seconds: 3), () {});
+    loadScreen();
+  }
+
+  Future<void> loadScreen()async{
+    await Future.delayed(Duration(seconds: 3));
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) =>  ExampleBrowser()),
+    );
   }
 
   @override
