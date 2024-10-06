@@ -43,6 +43,10 @@ dependencies:
   webview_flutter: ^4.0.0
   webview_flutter_wkwebview: ^3.0.0
   glassmorphism: ^3.0.0
+  flutter_cube: ^0.1.1
+  # path_provider: ^2.0.11
+  http: ^0.13.5
+  
 
 
 dev_dependencies:
