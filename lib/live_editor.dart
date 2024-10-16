@@ -15,7 +15,7 @@ class _LiveEditorState extends State<LiveEditor> {
   ];
 
   List<String> gifList = [
-    "assets/gif/doomgif.gif",
+    "assets/gif/doomgif1.gif",
     "assets/gif/doom2.gif",
     "assets/gif/doom3.gif"
   ];
@@ -36,7 +36,7 @@ class _LiveEditorState extends State<LiveEditor> {
     super.initState();
     _loadInitialBackground();
   }
-
+bool firstClick=true;
   void _loadInitialBackground() {
     Future.delayed(Duration(seconds: 2), () {
       setState(() {
@@ -59,7 +59,10 @@ class _LiveEditorState extends State<LiveEditor> {
 
       Future.delayed(Duration(seconds: 2), () {
         setState(() {
+          firstClick?
+          currentGifIndex=0:
           currentGifIndex = (currentGifIndex + 1) % gifList.length;
+          firstClick=false;
           String aiResponse = aiReplies[0];
           chatMessages.add({"text": aiResponse, "isUser": false});
           _isChangingBackground = false;
