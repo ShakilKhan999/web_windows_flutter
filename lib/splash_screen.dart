@@ -16,11 +16,11 @@ class _SplashScreenState extends State<SplashScreen> {
     loadScreen();
   }
 
-  Future<void> loadScreen()async{
+  Future<void> loadScreen() async {
     await Future.delayed(Duration(seconds: 3));
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) =>  ExampleBrowser()),
+      MaterialPageRoute(builder: (context) => ExampleBrowser()),
     );
   }
 
@@ -30,7 +30,7 @@ class _SplashScreenState extends State<SplashScreen> {
       backgroundColor: Colors.white,
       body: Center(
         child: Image.asset(
-          'assets/images/khelbe.png',
+          'assets/images/playgameLogo.png',
           width: 150,
           height: 150,
         ),

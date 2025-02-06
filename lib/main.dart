@@ -73,6 +73,7 @@ class _ExampleBrowser extends State<ExampleBrowser> with WindowListener {
   bool _showSpotlight = false;
   bool _showTextAnimation = false;
   bool _showViewer = false;
+  bool _showImageTo3D = false;
   Offset _spotlightPosition = Offset(20, 20);
 
   @override
@@ -264,6 +265,10 @@ class _ExampleBrowser extends State<ExampleBrowser> with WindowListener {
       return AnimationGenerateScreen();
     } else if (_showViewer) {
       return _buildWebViewWithButton();
+    } else if (_showImageTo3D) {
+      return Platform.isWindows
+          ? webview_windows.Webview(_controller)
+          : WebViewWidget(controller: _controller);
     } else {
       return TextTo3d();
     }
@@ -402,6 +407,29 @@ class _ExampleBrowser extends State<ExampleBrowser> with WindowListener {
                   _showTextAnimation = false;
                   _showViewer = true;
                 });
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.image_search),
+              title: Text('Image to 3D'),
+              onTap: () {
+                setState(() {
+                  _showAssets = false;
+                  _showEditPage = false;
+                  _showMusicPage = false;
+                  _showLiveEditPage = false;
+                  _showSpotlight = false;
+                  _showTextAnimation = false;
+                  _showViewer = false;
+                  _showImageTo3D = true;
+                });
+                if (Platform.isWindows) {
+                  _controller.loadUrl('http://34.170.172.86:7860/');
+                } else if (Platform.isMacOS) {
+                  _controller
+                      .loadRequest(Uri.parse('http://34.170.172.86:7860/'));
+                }
                 Navigator.pop(context);
               },
             ),
