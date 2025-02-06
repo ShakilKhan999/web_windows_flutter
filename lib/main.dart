@@ -13,7 +13,7 @@ import 'package:hotkey_manager/hotkey_manager.dart';
 
 // Platform-specific imports
 import 'package:webview_flutter/webview_flutter.dart'
-if (dart.library.html) 'package:webview_flutter_web/webview_flutter_web.dart';
+    if (dart.library.html) 'package:webview_flutter_web/webview_flutter_web.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 import 'package:webview_windows/webview_windows.dart' as webview_windows;
 
@@ -273,7 +273,7 @@ class _ExampleBrowser extends State<ExampleBrowser> with WindowListener {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Khelbe AI'),
+        title: Text('Playa3ull'),
       ),
       drawer: Drawer(
         child: ListView(
@@ -284,7 +284,7 @@ class _ExampleBrowser extends State<ExampleBrowser> with WindowListener {
                 color: Colors.grey[850],
               ),
               child: Text(
-                'Khelbe AI',
+                'Playa3ull',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 24,

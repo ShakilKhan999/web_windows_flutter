@@ -76,20 +76,20 @@ flutter_app_name:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/images/khelbe.png"
+  image_path: "assets/images/playgameLogo.png"
   min_sdk_android: 21
   web:
     generate: true
-    image_path: "assets/images/khelbe.png"
+    image_path: "assets/images/playgameLogo.png"
     background_color: "#FFFFFF" # Replace #FFFFFF with your desired hex color
     theme_color: "#FFFFFF" # Replace #FFFFFF with your desired hex color
   windows:
     generate: true
-    image_path: "assets/images/khelbe.png"
+    image_path: "assets/images/playgameLogo.png"
     icon_size: 48 # Adjust as needed, min: 48, max: 256
   macos:
     generate: true
-    image_path: "assets/images/khelbe.png"
+    image_path: "assets/images/playgameLogo.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
